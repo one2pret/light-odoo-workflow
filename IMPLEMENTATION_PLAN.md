@@ -4,6 +4,29 @@
 - Version: 1.0
 - Status: BASELINED
 
+## Source Code Location
+
+Documentation repository:
+
+`odoo18-dev/light-odoo`
+
+Odoo addon source root:
+
+`../custom-addons/`
+
+All implementation milestones must create or modify Odoo addon source under
+`../custom-addons/`.
+
+Approved V1 addon paths:
+
+- `../custom-addons/light_ir_approval`
+- `../custom-addons/light_internal_request`
+- `../custom-addons/light_ir_hr`
+- `../custom-addons/light_ir_purchase`
+- `../custom-addons/light_ir_stock`
+
+Do not create production addon source inside `light-odoo`.
+
 ## Milestone Rules
 
 - Implement one milestone at a time.
@@ -93,7 +116,7 @@ Create approval master configuration models:
 - FR-IR-038..041
 - FR-IR-149..158
 - TR-APR-001..003
-- TR-CFG-001..013
+- TR-CFG-001..012
 - ADR-005
 - ADR-024
 - ADR-025
@@ -122,6 +145,18 @@ Requirements:
 - ADR-006
 - ADR-007
 - ADR-008
+
+### Scope Clarification
+
+M03 implements the purpose-agnostic Approval Cycle Engine and generic approval
+capabilities shared by NEED and FINANCIAL approval flows.
+
+The inclusion of `FR-IR-059..063` in M03 identifies generic engine capability
+required by Financial Approval. It does not mean those Financial Approval
+requirements are functionally complete in M03.
+
+Financial-specific behavior for `FR-IR-059..063` remains implemented,
+integrated, tested, and accepted in M07/M11 according to the RTM.
 
 ## M04 — HR Organizational Resolver
 
@@ -233,7 +268,6 @@ Sourcing quantities must not multiply the effective Purchase Allocation.
 
 Requirements:
 - FR-IR-066..073
-- FR-IR-186..188
 - ADR-012
 - TR-PUR-002..009
 
@@ -397,8 +431,7 @@ Menus/worklists may include:
 - Configuration
 
 Requirements:
-- FR-IR-139..145
-- FR-IR-186..190
+- FR-IR-186..195
 
 Do not create a large custom JavaScript dashboard without a new approved requirement.
 

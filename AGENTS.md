@@ -170,3 +170,29 @@ If PRD, FRS, ADR, TR, or implementation behavior conflict:
 5. Do not silently redesign the system.
 
 Architecture changes require an approved new or superseding ADR.
+
+## Repository Boundary
+
+The LIGHT documentation and governance repository is:
+
+`odoo18-dev/light-odoo`
+
+The Odoo addon source directory is the sibling directory:
+
+`odoo18-dev/custom-addons`
+
+From this repository, addon source code must be created under:
+
+`../custom-addons/`
+
+Do not create production Odoo addon source inside `light-odoo/`.
+
+The approved V1 addon locations are:
+
+- `../custom-addons/light_ir_approval`
+- `../custom-addons/light_internal_request`
+- `../custom-addons/light_ir_hr`
+- `../custom-addons/light_ir_purchase`
+- `../custom-addons/light_ir_stock`
+
+Documentation remains authoritative in `light-odoo/`.

@@ -13,7 +13,9 @@ For every implementation task:
 
 1. Read `AGENTS.md`.
 2. Read the current milestone in `IMPLEMENTATION_PLAN.md`.
-3. Read relevant sections in:
+3. Read governance and product baseline documents:
+   - `docs/00_governance/TERMINOLOGY.md`
+   - `docs/00_governance/DECISION_REGISTER.md`
    - `docs/01_product/PRD.md`
    - `docs/01_product/FRS.md`
    - `docs/01_product/NFR.md`
@@ -160,3 +162,27 @@ A task is complete only when:
 - applicable tests exist;
 - applicable tests pass;
 - no unresolved baseline conflict remains.
+
+## Source Code Location
+
+This repository contains documentation, governance, and implementation
+instructions.
+
+Do not create production Odoo addons inside this repository.
+
+The Odoo addon source root is:
+
+`../custom-addons/`
+
+Approved V1 addon directories:
+
+- `../custom-addons/light_ir_approval`
+- `../custom-addons/light_internal_request`
+- `../custom-addons/light_ir_hr`
+- `../custom-addons/light_ir_purchase`
+- `../custom-addons/light_ir_stock`
+
+Before implementing any milestone, verify that the target path resolves to the
+expected sibling `custom-addons` directory.
+
+Do not create a nested `light-odoo/addons/` implementation tree.
