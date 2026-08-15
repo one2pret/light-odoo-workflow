@@ -196,3 +196,25 @@ The approved V1 addon locations are:
 - `../custom-addons/light_ir_stock`
 
 Documentation remains authoritative in `light-odoo/`.
+
+## Git Repository Ownership
+
+This project uses two separate Git repositories.
+
+Documentation and governance repository:
+
+`light-odoo/`
+
+Odoo source-code repository:
+
+`../custom-addons/`
+
+Rules:
+
+1. Documentation baseline changes belong only in the `light-odoo` repository.
+2. Odoo addon implementation changes belong only in the `../custom-addons` repository.
+3. Coding commits for milestones M01..M20 must be created in `../custom-addons`.
+4. Do not commit addon source code into `light-odoo`.
+5. Do not commit documentation baseline changes into `../custom-addons`.
+6. A milestone implementation commit must be made only after the milestone reaches READY_FOR_REVIEW and passes review.
+7. Documentation baseline changes require explicit change control and are committed separately in `light-odoo`.

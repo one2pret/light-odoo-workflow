@@ -186,3 +186,26 @@ Before implementing any milestone, verify that the target path resolves to the
 expected sibling `custom-addons` directory.
 
 Do not create a nested `light-odoo/addons/` implementation tree.
+
+## Git Commit Boundary
+
+This project uses separate Git repositories for documentation and source code.
+
+Documentation/governance Git repository:
+
+`light-odoo/`
+
+Odoo addon source Git repository:
+
+`../custom-addons/`
+
+For implementation milestones:
+
+- modify source code only under `../custom-addons/`;
+- run source-code Git commands from `../custom-addons/`;
+- do not commit implementation code in `light-odoo`;
+- do not modify baseline documentation unless explicitly instructed through approved change control;
+- do not create Git commits automatically unless the user explicitly requests the commit;
+- milestone source commits belong in `../custom-addons/`.
+
+Before reporting milestone completion, include the source-repository Git status.
