@@ -68,6 +68,43 @@ Preferred:
 
 resolve applicable configured policy.
 
+## Review Requirement and Fulfillment Plan Approval Requirement
+
+`light.ir.policy` (TR-02) is the sole configuration owner for whether
+Review (FR-IR-042..045) and Fulfillment Plan Approval (FR-IR-052) are
+required. It is not represented on `light.ir.request.type` (which carries
+no behavioral fields, DEC-006/DEC-009) and it is not represented on
+`light.ir.approval.policy` (whose purpose remains NEED/FINANCIAL only,
+ADR-005/DEC-010, and which must remain generic/purpose-agnostic,
+ADR-003/DEC-004).
+
+Resolution dimensions for this V1 use case:
+
+- Company (required)
+- Request Type (optional — exact match or global)
+- Effective Period (optional)
+
+Precedence: an active `light.ir.policy` with an exact `request_type_id`
+match takes precedence over an active global (`request_type_id` empty)
+policy for the same Company and effective date. This mirrors the
+precedence already established for `light.ir.approval.policy` Request Type
+resolution.
+
+Resolution outcome:
+
+- No applicable `light.ir.policy` for the Company/Request Type/date
+  context: BLOCK with an actionable configuration error (TR-CFG-007).
+- More than one equally applicable `light.ir.policy` at the same
+  specificity tier (both exact-Request-Type, or both global): BLOCK as
+  ambiguous (TR-CFG-008).
+- An expired or not-yet-effective policy is not applicable and is excluded
+  from resolution, not silently substituted for the current one.
+- No configuration silently defaults `review_required` or
+  `plan_approval_required` to any value (ADR-025, DEC-019): once a policy
+  resolves, its own explicit Boolean value is always what applies —
+  including an explicit `False`, which is a deliberate configuration
+  decision, not a fallback.
+
 ## Responsibility
 
 Approval responsibility shall not be represented by hard-coded user IDs.

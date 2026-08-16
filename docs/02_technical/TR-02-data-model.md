@@ -50,6 +50,53 @@ Core request configuration may include:
 
 Configuration shall remain distinct from historical transaction records.
 
+### `light.ir.policy`
+
+`light.ir.policy` is the request-level governance configuration model that
+determines, per applicable Company / Request Type / effective period,
+whether Review (TERMINOLOGY #23, FR-IR-042..045) and Fulfillment Plan
+Approval (FR-IR-052) are required for a given Internal Request context.
+
+`light.ir.policy` is distinct from `light.ir.approval.policy`:
+
+- `light.ir.approval.policy` governs the NEED/FINANCIAL Approval Engine
+  (ADR-005, DEC-010) and lives in `light_ir_approval`, which remains
+  purpose-agnostic/generic and must not depend on `light_internal_request`
+  (ADR-003, DEC-004).
+- `light.ir.policy` governs request-level Review / Plan-Approval
+  requirement configuration and lives in `light_internal_request`. It
+  introduces no new Approval Engine purpose; NEED and FINANCIAL remain the
+  only V1 approval purposes.
+
+Minimum canonical fields:
+
+- `name`
+- `company_id` — required; applicable Company scope (TR-CFG-002).
+- `request_type_id` — optional; empty means an explicit global policy,
+  applicable only when no exact-Request-Type policy applies for the same
+  Company/effective date (see TR-10 precedence rule). This never adds a
+  behavioral field to `light.ir.request.type` itself (DEC-006, DEC-009,
+  TERMINOLOGY #5): the behavior lives on `light.ir.policy`, resolved using
+  Request Type only as a resolution dimension, exactly as
+  `light.ir.approval.policy.request_type_id` already does for Approval
+  Policy resolution.
+- `date_from` / `date_to` — optional effective period (TR-CFG-005).
+- `active` — standard archiving flag.
+- `review_required` — Boolean. The resolved policy's explicit value
+  determines whether Review is mandatory (FR-IR-042). An explicit `False`
+  is a deliberate configuration decision, not a fallback.
+- `plan_approval_required` — Boolean. The resolved policy's explicit value
+  determines whether Fulfillment Plan Approval is mandatory (FR-IR-052).
+  An explicit `False` is a deliberate configuration decision, not a
+  fallback.
+
+An applicable `light.ir.policy` MUST exist for the resolution context
+before Review/Plan-Approval requirement can be determined. Missing,
+ambiguous, or expired applicable policy blocks with an actionable error
+(TR-CFG-006/007/008, ADR-025, DEC-019) — there is no silent default value
+for `review_required` or `plan_approval_required`. See TR-10 for the exact
+resolution/precedence rule.
+
 ## Fulfillment Planning
 
 Structured fulfillment planning shall use a dedicated allocation model.
