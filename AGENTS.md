@@ -218,3 +218,32 @@ Rules:
 5. Do not commit documentation baseline changes into `../custom-addons`.
 6. A milestone implementation commit must be made only after the milestone reaches READY_FOR_REVIEW and passes review.
 7. Documentation baseline changes require explicit change control and are committed separately in `light-odoo`.
+
+
+LANGUAGE CONVENTION
+
+Source-code technical language MUST remain English:
+- Python identifiers
+- model/field technical names
+- method names
+- XML IDs
+- docstrings
+- technical comments
+- test names
+- developer-facing technical logs
+
+Indonesian MUST be used for end-user-facing LIGHT ERP content:
+- field labels
+- menu labels
+- action/view titles
+- button labels
+- help text
+- business UserError/ValidationError messages
+- operational instructions shown to users
+
+Do not translate Odoo/Python technical identifiers into Indonesian.
+
+Use Odoo translation-compatible strings (_()) for user-facing messages.
+
+Technical milestone reports may be written in Indonesian while retaining
+English technical identifiers.
