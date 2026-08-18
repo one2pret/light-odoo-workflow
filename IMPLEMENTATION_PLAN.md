@@ -318,6 +318,16 @@ Requirements:
 - FR-IR-082..090
 - TR-STK-005..010
 
+### Scope Clarification
+
+M13 implements the stock-execution derivation capability for Delivered
+Quantity required by TR-STK-005 so that M14 can consume authoritative
+delivery results.
+
+This supporting implementation does not move functional completion of
+FR-IR-091 from M14. FR-IR-091 remains implemented, integrated, tested and
+accepted in M14 according to the RTM.
+
 ## M14 — Acceptance Engine
 
 Create `light.ir.acceptance.event`.
