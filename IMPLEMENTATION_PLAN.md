@@ -378,19 +378,71 @@ Requirements:
 
 ## M16 — Cancellation
 
-Create structured cancellation workflow.
+Create `light.ir.cancellation`: a structured, ATOMIC, append-only
+business event that removes remaining authorized business requirement.
+Adds the canonical `light.internal.request.line.cancelled_qty`
+(= SUM of effective Cancellation event quantities) and `outstanding_qty`
+(ADR-019: `approved_qty - accepted_qty - cancelled_qty`). Enforces
+`accepted_qty + cancelled_qty <= approved_qty` (FR-IR-117; the
+invariant itself was already declared in TR-03 before M16 existed,
+only enforcement was missing).
 
 Support:
-- cancellation request
+- cancellation request (partial or full — one action,
+  `line.action_cancel(quantity, reason)`; full Cancellation is simply
+  cancelling the entire current `outstanding_qty`)
 - authorization
-- downstream resolution
 - effective cancellation
-- partial cancellation
-- full cancellation
 
 Requirements:
 - FR-IR-114..119
-- FR-IR-135..138
+- FR-IR-135..138 (partial — quantity/history portion only; IR primary
+  state transition is not implemented, see Scope Clarification)
+
+Technical Requirements:
+- TR-AUD-003, TR-AUD-009..012, TR-QTY-006 (FR-IR-114..119)
+- TR-QTY-005..010, TR-ACC-011 (shared portion of FR-IR-135..139,
+  spanning M14/M16/M17/M20 per RTM)
+
+ADRs:
+- ADR-016, ADR-019, ADR-020, ADR-022, ADR-027, ADR-028
+
+### Scope Clarification
+
+M16 implements Cancellation as a single ATOMIC event (mirrors the
+`light.ir.acceptance.event` shape, M14) — not a stateful multi-phase
+record. TR-09's own field list for Cancellation names no
+status/resolution fields, unlike M15's Exception.
+
+Cancellation Authority (FR-IR-116, "applicable authorization according
+to configured governance") is NOT capability-only (DEC-016 — capability
+does not equal transaction authority). Authorization order: LIGHT
+Cancellation capability (coarse gate) -> Company boundary -> resolve
+the V1 responsibility code `IR_CANCELLATION_AUTHORITY` via the
+existing, standalone, purpose-agnostic
+`light.ir.responsibility.assignment._resolve()` (TR-10 "Configuration
+Domains" lists "Cancellation Authority" as its own configured-
+governance domain) -> resolved user must equal the acting user (no
+requester fallback) -> the locked M08 readiness gate. This reuses only
+the standalone Responsibility resolver: no Approval Cycle is created,
+no new Approval Cycle purpose is introduced, and the generic Approval
+Engine is not modified (NEED/FINANCIAL remain its only purposes,
+ADR-005/DEC-010).
+
+"Downstream resolution" (FR-IR-118) is not implemented as a
+route-specific check: M16 core remains route-agnostic (never inspects
+`purchase.order`/`purchase.order.line`/`stock.move`/`stock.picking`),
+mirroring M14/M15's own route-agnostic precedent. Cancellation changes
+LIGHT business-requirement authority only — it never creates, modifies,
+or cancels a standard Odoo Purchase or Stock document.
+
+M16 does not transition the IR primary state (to `cancelled` or
+`done`): the baseline does not provide a deterministic exact rule
+distinguishing fully-accepted/fully-cancelled/mixed completion. That
+remains open for a later milestone.
+
+M15's `resolution_type == 'cancel_remaining'` is an optional upstream
+intent only, never a mandatory prerequisite for `action_cancel()`.
 
 ## M17 — Revision & Reversal
 
