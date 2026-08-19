@@ -371,9 +371,10 @@ Support configurable exception reasons and controlled resolution:
 
 Requirements:
 - FR-IR-102..113
-- TR-ACC-008..011
+- TR-ACC-007, TR-ACC-008, TR-ACC-009, TR-ACC-010, TR-ACC-011, TR-ACC-012
 - ADR-018
 - ADR-019
+- ADR-028
 
 ## M16 — Cancellation
 
