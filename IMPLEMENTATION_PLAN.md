@@ -334,17 +334,26 @@ Create `light.ir.acceptance.event`.
 
 Support:
 - manual acceptance
-- automatic acceptance
-- not required
 - partial acceptance
 - receiver authorization
-- idempotent automatic acceptance
 - service acceptance without Stock Move
+- reversal (corrective, immutable event history)
+
+Scope Clarification: M14 implements Manual Acceptance and Reversal
+mechanics only. FR-IR-093 is partially implemented — Manual mode
+exists; policy-based mode selection is not. Automatic Acceptance
+(FR-IR-100, FR-IR-101) is explicitly deferred: the baseline does not
+define a deterministic trigger mechanism, automatic actor/authority,
+"Not Required" completion semantics, or the interaction between an
+automatic processor and a user-initiated Reversal. These require an
+approved design decision before implementation, not invention during
+coding.
 
 Requirements:
 - FR-IR-091..101
-- FR-IR-110..113
-- TR-ACC-001..007
+- TR-ACC-001, TR-ACC-002, TR-ACC-003, TR-ACC-004, TR-ACC-006, TR-ACC-010 (implemented)
+- TR-ACC-005 (deferred — Automatic Acceptance)
+- TR-ACC-007 is out of M14 scope (Exception/Cancellation boundary, M15/M16)
 - ADR-016
 - ADR-017
 
