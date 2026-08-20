@@ -568,11 +568,41 @@ Menus/worklists may include:
 - Internal Fulfillment Worklist
 - Pending Acceptance
 - Exceptions
+- Quantity Monitoring
 - All Requests
 - Configuration
 
+Built entirely from standard Odoo menus/actions/list/form/search views
+and deterministic domains over existing fields — no mail.thread, no
+mail.activity.mixin, no client actions, no new business state. Approval
+Worklist is deliberately ungated (DEC-016): NEED/FINANCIAL approval
+authority is Responsibility-resolved, not group-based, so the domain
+filter (`resolved_user_id = uid`) is what makes it personal, and the
+underlying engine re-verifies authority regardless of UI visibility.
+
+Locked M19 V1 decision on FR-IR-187 (My Actions): satisfied through the
+distributed, per-actor worklists (Approval Worklist, Review Worklist,
+Plan Approval Worklist, Pending Acceptance, Exceptions) rather than a
+cross-model aggregate view — no new model, field, SQL view, client
+action, or dashboard is introduced for it.
+
+FR-IR-193 (Quantity Monitoring) is pure navigation onto the existing
+Internal Request Line list/action, already exposing requested/
+approved/delivered/accepted/cancelled/outstanding quantities — no new
+model, field, compute, business action, ACL, or record rule.
+
+Pending Acceptance uses one non-stored, search-only computed field,
+`light.internal.request.line.is_pending_acceptance`
+(`delivered_qty > accepted_qty`) — the exact condition, not an
+approximation, since M14's own `action_accept()`/
+`action_reverse_acceptance()` already enforce
+`0 <= accepted_qty <= delivered_qty`. No DB column, no new canonical
+quantity.
+
 Requirements:
 - FR-IR-186..195
+- ADR-007, ADR-020
+- TR-SEC-001..007
 
 Do not create a large custom JavaScript dashboard without a new approved requirement.
 
