@@ -519,13 +519,41 @@ Review and harden:
 - auditor rights
 - administrator separation
 
+Fixes the one confirmed gap found during the M18 read-only scope
+analysis: `light.ir.fulfillment.exception` (M15) had ACL rows but no
+company-scoped `ir.rule`, unlike every other LIGHT historical model —
+any internal user in any Company could read Fulfillment Exception
+records across all Companies (cross-company action was already
+blocked; cross-company read was not).
+
+Introduces `group_light_auditor` (FR-IR-165, TR-05, TR-SEC-006):
+strictly read-only, company-scoped like every other LIGHT group, no
+`implied_ids` to any business capability group, no create/write/
+unlink, no business action authority anywhere. Read access is granted
+only on the TRANSACTIONAL/HISTORY model set (TR-04's own explicit
+"Approval Transaction Models" vs "Approval Configuration Models" split,
+extended consistently to the rest of the schema) — never on
+configuration/master data (Approval Policy/Rule/Rule Step,
+Responsibility Assignment, Delegation, Governance Policy, HR
+Responsibility Rule, Request Type). Locked M18 V1 decision: Auditor
+receives NO additional access to configuration/master models — a
+least-privilege boundary, not a statement that a future governance-
+audit requirement may never grant such access.
+
+Hardening only: no locked business semantics changed, no new business
+model introduced, no deferred M14/M17 feature (Automatic Acceptance,
+terminal-state reopen) implemented here.
+
 Requirements:
 - FR-IR-149..178
 - TR-SEC-*
 - TR-CFG-*
 - ADR-007
 - ADR-008
+- ADR-023
+- ADR-024
 - ADR-025
+- ADR-026
 
 ## M19 — Worklists, Monitoring & Navigation
 
