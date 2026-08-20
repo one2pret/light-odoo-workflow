@@ -446,22 +446,63 @@ intent only, never a mandatory prerequisite for `action_cancel()`.
 
 ## M17 — Revision & Reversal
 
-Create `light.ir.revision` and controlled reversal mechanisms.
+Create `light.ir.revision`: a structured, STATEFUL record (active/
+applied/rejected — the minimal lifecycle FR-IR-133's "single active
+material Revision" requires) representing a material post-submission
+change to an IR Line's requirement.
 
 Support:
-- material revision
-- impact evaluation
-- approval superseding
-- company change block
-- single active material revision
-- acceptance reversal
-- controlled reactivation through valid business events
+- material revision (quantity, Product, Specification)
+- impact evaluation (NEED/FINANCIAL reapproval, Fulfillment
+  Replanning)
+- approval superseding (reuses `light.ir.approval.cycle`'s existing
+  `_create_cycle(..., supersedes=...)` mechanism unchanged, the same
+  pattern M11 already proved for FINANCIAL)
+- company change block (ADR-023)
+- single active material revision (FR-IR-133; a genuine DB-level
+  partial unique index, not only an ORM-level constrain, is required —
+  found necessary during concurrency testing since the Python
+  `@api.constrains` alone cannot see a concurrent sibling's write under
+  PostgreSQL REPEATABLE READ when the constrain reads a different table
+  than the one being row-locked)
+- controlled reactivation through valid business events (FR-IR-140
+  remains explicitly deferred — M17 does not implement generic reopen
+  of `done`/`cancelled` IRs; operates only on `submitted`/`in_process`)
+
+Does NOT reimplement Acceptance Reversal (FR-IR-134): M14's
+`light.ir.acceptance.event`/`action_reverse_acceptance()` remains the
+sole, unmodified mechanism — M17 preserves and regression-tests that
+history only.
+
+Pending-vs-effective semantics: while a Revision is `active`,
+`approved_qty`/`product_id`/`description` remain at their current
+effective value — proposed values live only on the Revision record.
+`requested_qty` is the one documented exception: for a quantity
+*increase* specifically, `requested_qty` becomes effective immediately
+when NEED reapproval is triggered (not deferred to apply). This is not
+a deviation from baseline: TERMINOLOGY #42/TR-03 define `requested_qty`
+as the Requester's ask (not "the currently effective authorized
+requirement" — that is `approved_qty`'s role, TERMINOLOGY #43), no
+FR/TR/ADR/DEC anywhere requires `requested_qty` to stay frozen during a
+pending reauthorization, M06's own `action_submit()` already puts the
+IR in exactly this state from the moment of Submit (`requested_qty` set
+immediately, `approved_qty` remaining 0 for the entire pending NEED
+Approval window), and no downstream execution ceiling (Fulfillment
+Allocation, Purchase/Stock Attribution, Acceptance, Cancellation,
+`outstanding_qty`, Financial Authorization basis) ever reads
+`requested_qty` — all read `approved_qty` exclusively. The early move
+is additionally structurally required: M06's own locked
+`need_pending_qty <= requested_qty` invariant (`_check_approved_qty_
+invariant`, unmodified by M17) would otherwise be violated the moment
+`need_pending_qty` is primed to a higher proposed ceiling. Reverted
+automatically to the prior value if the Revision is later rejected.
 
 Requirements:
 - FR-IR-120..134
 - TR-AUD-001..012
 - ADR-021
 - ADR-022
+- ADR-023
 - ADR-028
 
 ## M18 — Security & Configuration Hardening
