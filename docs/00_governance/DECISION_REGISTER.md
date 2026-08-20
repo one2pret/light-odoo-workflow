@@ -336,6 +336,37 @@ Automated tests are part of implementation.
 
 A milestone is not Done while applicable required tests are missing or failing.
 
+## DEC-041 — IR Completion Predicate and Controlled Reactivation
+
+**Status:** LOCKED
+
+Closes the FR-IR-136..142/145 gap left open by M14/M16/M17 (M20).
+
+Completion eligibility, per line:
+
+- `outstanding_qty == 0`
+- no open Fulfillment Exception
+- no pending Acceptance (`delivered_qty > accepted_qty`)
+
+Terminal outcome, once every line is eligible:
+
+- any line has `accepted_qty > 0` (accepted-only or mixed with Cancellation) -> `done`
+- no line has any `accepted_qty > 0` (cancellation-only) -> `cancelled`
+
+Completion is evaluated automatically by a centralized evaluator invoked only
+from within an already-authorized business action (Acceptance, Reversal,
+Cancellation, Exception report/resolve, applied Revision). No new Mark Done
+action, authority, group, or responsibility is introduced.
+
+A terminal IR may become non-terminal again only as a side effect of one of
+those same already-authorized actions (Acceptance Reversal, Report Exception,
+authorized Revision) re-opening the predicate above. This is not DEC-037's
+generic Reopen: no unrestricted reopen action exists: reactivation is never
+independently callable and never accepts a caller-supplied target state.
+
+Automatic Acceptance (FR-IR-100/101) remains outside this decision and
+remains deferred.
+
 ## Change Control
 
 A coding agent must not silently alter a LOCKED decision.

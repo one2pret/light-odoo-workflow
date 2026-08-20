@@ -608,7 +608,53 @@ Do not create a large custom JavaScript dashboard without a new approved require
 
 ## M20 — End-to-End Regression & Release Candidate
 
-No major new feature.
+Closes the FR-IR-136..142/145 IR Completion / Controlled Reactivation gap
+that M14/M16/M17 each explicitly left open (see M16's own Scope
+Clarification: "spanning M14/M16/M17/M20 per RTM"). Locked as DEC-041.
+
+Completion eligibility, per line: `outstanding_qty == 0`, no open
+Fulfillment Exception, no pending Acceptance (`delivered_qty >
+accepted_qty`). Terminal outcome once every line is eligible: any
+`accepted_qty > 0` (accepted-only or mixed with Cancellation, per
+TR-03's own "Cancellation Example") -> `done`; no line with any
+`accepted_qty > 0` (cancellation-only) -> `cancelled`. Evaluated
+automatically by a single centralized evaluator invoked only from
+inside the six already-authorized business actions that can change a
+completion-relevant fact (Accept, Reverse Acceptance, Cancel, Report
+Exception, Resolve Exception, Apply Revision) — no new Mark Done
+action, authority, group, or responsibility. Controlled reactivation
+(FR-IR-140) is a side effect of the same three of those six actions
+(Acceptance Reversal, Report Exception, an approved Revision increase)
+re-opening the predicate on an already-terminal IR — never a generic
+Reopen (FR-IR-139/DEC-037 unchanged): no `action_reopen()` exists, no
+caller-supplied target state, direct non-`su` `state` writes remain
+blocked exactly as before. `_check_revision_authorized()`'s state
+guard was narrowly widened to permit `done`/`cancelled` (FR-IR-140
+explicitly names Revision as a sanctioned reactivation path); Draft
+remains blocked.
+
+Automatic Acceptance (FR-IR-100/101) remains deferred, not implemented
+here or anywhere in V1.
+
+Requirements:
+- FR-IR-135..145
+- FR-IR-196
+- ADR-016, ADR-019, ADR-020, ADR-022
+- TR-QTY-005..010, TR-ACC-011
+- TR-PUR-012, TR-STK-010, TR-TST-001..012
+- DEC-041
+
+Known test-infrastructure debt (not a runtime defect): running all
+`database_breaking`-tagged concurrency suites together in one process
+causes 3 of the pre-existing M15/M16/M17 classes to fail at
+`setUpClass`, because each independently commits (via `BaseCase`, no
+rollback) its own global, unscoped NEED Approval Policy with no
+cleanup — the same `_resolve()` ambiguity guard each is designed to
+exercise fires across suites, not within any one of them. M20's own
+concurrency test avoids this via a Tier-1 (request-type-scoped)
+policy. Not fixed here; would require modifying locked M14-M17 test
+files without instruction. Each suite continues to be run individually
+per its own documented "run explicitly" intent.
 
 Validate golden scenarios:
 - Simple Purchase
