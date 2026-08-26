@@ -62,9 +62,13 @@ Requester is not automatically:
 - receiver;
 - financial approver.
 
-Requester Price Estimate is optional by default.
+Requester Price Estimate is optional while Draft; mandatory and greater
+than zero on every line before Submit (M21, DEC-042 — supersedes DEC-011
+at Submit time only).
 
-A requester is not expected to know the final procurement price.
+A requester is not expected to know the final procurement price, but may
+be seeded a Product Cost-derived default while Draft (DEC-043) and may
+override it.
 
 ---
 
@@ -141,12 +145,15 @@ processes.
 
 ## 9. Requester Price Estimate
 
-Requester Price Estimate is an optional estimate entered by the Requester.
+Requester Price Estimate is an estimate entered by the Requester, optional
+while Draft and mandatory (greater than zero, every line) before Submit
+(M21, DEC-042).
 
 It is not authoritative procurement pricing.
 
-Unknown price at request time is valid unless an explicitly applicable policy
-requires otherwise.
+Unknown price at request time is valid while Draft; it must be resolved
+(entered manually, or seeded from Product Cost per DEC-043 and optionally
+overridden) before Submit.
 
 ---
 
@@ -832,6 +839,43 @@ unnecessarily require Enterprise-only modules.
 Initial deployment may use Odoo Enterprise.
 
 Community-compatible does not mean production must run Odoo Community.
+
+---
+
+## 61. Department
+
+Department is an organizational Approval Policy resolution dimension,
+independent from Request Type (M21, DEC-044/045).
+
+Department is resolved from the Requester's HR Employee record within
+the Internal Request's own Company, stored as an immutable submission-time
+snapshot, and never derived from Request Type.
+
+Department resolution is mandatory only when Department-aware Approval
+Policy governance is actually configured as relevant to the current
+Company/Purpose/Request Type (DEC-045); otherwise legacy/global
+governance applies unchanged.
+
+---
+
+## 62. Estimated Line Amount
+
+Estimated Line Amount is `requested_qty x price_estimate` on a
+requirement line (M21).
+
+It is a derived amount, not itself an authoritative procurement or
+Financial Approval amount.
+
+---
+
+## 63. Estimated Submission Amount
+
+Estimated Submission Amount is the sum of Estimated Line Amount across
+every requirement line of an Internal Request (M21).
+
+It is the amount basis supplied to NEED Approval Cycle creation for
+amount-based routing. It does not turn NEED into FINANCIAL and does not
+introduce a third Approval Purpose.
 
 ---
 

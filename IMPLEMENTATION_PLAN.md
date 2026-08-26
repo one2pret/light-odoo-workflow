@@ -685,6 +685,65 @@ M20 is complete only when:
 - no critical unmapped requirement remains
 - no critical unresolved security or architecture defect remains
 
+## M21 — Department-Aware Amount-Based NEED Approval
+
+Post-V1 addition (light-ir-m20 baseline), closing FR-IR-027's remaining
+gap (Department as a full Approval Policy resolution dimension, not just
+Department Head responsibility resolution) and FR-IR-017's Submit-time
+completeness. Locked as DEC-042..046.
+
+`price_estimate` remains optional while Draft, seeded once from Product
+Cost (`product.standard_price`, converted via standard Odoo UoM/currency
+mechanisms — never a live approval dependency), overridable by the
+Requester, and mandatory (>0, every line) before Submit (DEC-042/043).
+Estimated Line Amount (`requested_qty x price_estimate`) and Estimated
+Submission Amount (their sum) are new compute+store fields; the
+aggregate is passed to the existing, unchanged NEED `_create_cycle()` as
+an amount basis, reusing the same tiered `threshold_min <= amount <
+threshold_max` engine FINANCIAL already exercised (no new engine, no
+third Approval Purpose, DEC-046).
+
+`department_id` is a new immutable submission-time snapshot on
+`light.internal.request` (added in `light_ir_hr`, never in core
+`light_internal_request` — HR stays isolated per AGENTS.md), resolved
+from the Requester's HR Employee and frozen at Submit (DEC-044).
+`light.ir.approval.policy` gains an independent, optional `department_id`
+dimension with a locked 4-tier precedence against Request Type
+(DEC-045). Department/Employee resolution is mandatory (fails closed)
+only when a Department-scoped NEED Policy is actually relevant to the
+Company/Purpose/Request Type in play — otherwise M20 backward
+compatibility is preserved unconditionally, so installing `light_ir_hr`
+alone never blocks a Submit that has nothing to do with Department
+governance.
+
+Department Head reuses the existing `light.ir.hr.responsibility.rule`
+mechanism unchanged (zero new code); Related C-Level/CFO/CEO reuse
+static `light.ir.responsibility.assignment` rows (e.g. `GM_CLEVEL`,
+`CFO`, `CEO`) — configuration only. `self_approval_skip` is reused
+unchanged.
+
+Requirements:
+- FR-IR-017, FR-IR-018, FR-IR-027, FR-IR-028
+- TR-APR-001..013 (engine unchanged, reused as-is)
+- TR-ARC-003 (HR isolation preserved)
+- DEC-042, DEC-043, DEC-044, DEC-045, DEC-046 (supersedes DEC-011 at
+  Submit time only)
+
+Explicitly out of scope, unchanged: FINANCIAL Tier-1/Tier-2, PO
+Commitment Authority, PO ceiling consumption/double-approval, budget-
+aware routing, 7-day escalation, shared-account policy, price-change-
+after-approval Revision support, a third Approval Purpose.
+
+No historical Department backfill: pre-M21 Internal Requests keep
+`department_id = False`.
+
+M21 is complete only when:
+- applicable automated tests pass (807 standard LIGHT tests: 769 M20
+  baseline + 38 new, 0 failed, 0 errors)
+- fresh-install and upgrade-from-`light-ir-m20` both verified clean
+- no critical unmapped requirement remains
+- no critical unresolved security or architecture defect remains
+
 ## Milestone Completion Report
 
 Every milestone must end with:

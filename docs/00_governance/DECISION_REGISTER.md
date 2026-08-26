@@ -104,7 +104,9 @@ Approval purposes:
 
 ## DEC-011 — Requester Price Is Optional by Default
 
-**Status:** LOCKED
+**Status:** LOCKED. Partially superseded by DEC-042 (M21): optionality
+applies while Draft only. This entry is preserved unmodified for
+historical traceability; DEC-042 is the authoritative Submit-time rule.
 
 Requester Price Estimate is optional by default.
 
@@ -366,6 +368,148 @@ independently callable and never accepts a caller-supplied target state.
 
 Automatic Acceptance (FR-IR-100/101) remains outside this decision and
 remains deferred.
+
+## DEC-042 — Requester Price Estimate Mandatory at Submit (M21)
+
+**Status:** LOCKED. Supersedes DEC-011 regarding Submit-time optionality
+only. DEC-012 and DEC-013 remain valid and unaffected.
+
+`light.internal.request.line.price_estimate` remains optional while the
+Internal Request is Draft — Estimated Unit Price is never required while
+Draft.
+
+Every submitted requirement line must have `price_estimate > 0`. Submit
+blocks otherwise (FR-IR-017/018, TR-APR-003 pattern: missing
+governance-critical basis blocks by default).
+
+`price_estimate` remains distinct from `validated_price_untaxed` /
+`validated_price_tax_included` (DEC-013) and from actual PO commercial
+value: it is Requester-supplied evidence used as NEED Approval routing
+basis, never overwritten by Price Validation or Purchase.
+
+## DEC-043 — Product Cost Is a Draft-Time Seed, Never a Live Approval Dependency (M21)
+
+**Status:** LOCKED.
+
+`product.standard_price` may initialize `price_estimate` once, when a
+catalog Product is selected on a Draft requirement line and the field is
+still empty. This is a Draft-time convenience default only.
+
+The Requester may override the seeded `price_estimate` at any time while
+Draft; the override persists and is never re-seeded.
+
+Where the Internal Request line's Unit of Measure differs from the
+Product's own Unit of Measure, standard Odoo UoM price conversion
+(`uom.uom._compute_price()`) must be used when seeding — never an
+invented ratio. Standard Odoo currency conversion must be used where the
+Product's Cost currency differs from the Internal Request's Currency.
+
+`standard_price` is never a live approval dependency: it is read once, at
+seed time, and never read again. Changing Product Cost after Submit must
+never alter the historical NEED Approval valuation of an already-submitted
+Internal Request.
+
+No separate requester-facing "Product Cost" field is exposed; `standard_price`
+is used server-side only, to compute the `price_estimate` default.
+
+## DEC-044 — Department Snapshot and Independent Routing Dimension (M21)
+
+**Status:** LOCKED.
+
+Department is an approval-routing dimension independent from Request
+Type. Request Type must never be used as a Department proxy, and vice
+versa.
+
+`light.internal.request.department_id` is a stored snapshot field
+(never a live/related field), resolved from the Requester's HR Employee
+record (`res.users -> hr.employee -> department_id`) within the Internal
+Request's own Company.
+
+The snapshot is re-resolvable while Draft (tracks Requester/Company
+changes for Draft-time convenience) and freezes immutably at Submit,
+using the same Draft-only write-guard pattern as other material header
+fields (TR-APR-004 Cycle Snapshot pattern).
+
+Later Employee Department changes (HR reorganization) after Submit must
+never alter the historical routing meaning of an already-submitted
+Internal Request.
+
+No historical Department backfill is performed for Internal Requests
+submitted before M21; `department_id` remains `False` on those records.
+
+## DEC-045 — Department Policy Precedence and Fail-Closed Relevance (M21)
+
+**Status:** LOCKED.
+
+`light.ir.approval.policy` gains an optional `department_id` dimension,
+independent of and additive to the existing Request Type dimension
+(DEC-006/DEC-019 pattern). Resolution for NEED purpose uses a
+deterministic 4-tier precedence:
+
+1. Department exact + Request Type exact
+2. Department exact + Request Type global
+3. Department global + Request Type exact
+4. Department global + Request Type global (fully global)
+
+At each tier: exactly one match resolves it; more than one match at the
+same tier blocks as ambiguous (never "first record wins"); zero matches
+falls through to the next tier; no match at Tier 4 blocks per existing
+governance behavior (TR-APR-003, ADR-025 explicit-fallback allowance).
+
+**Fail-closed relevance rule.** Department resolution is NOT universally
+mandatory. Before Submit, the system determines whether Department-aware
+NEED governance is relevant: at least one active Policy exists for the
+current Company, `purpose = need`, the current effective date, with
+`department_id` set, and Request Type compatible with the current
+request (`request_type_id` equal to the current Request Type, or global).
+
+- If no such Policy exists: M20 backward-compatible Request-Type/global
+  resolution is preserved. A missing or unresolvable Requester
+  Employee/Department does not, by itself, block Submit merely because
+  `light_ir_hr` happens to be installed.
+- If one or more such Policies exist: Requester Employee resolution
+  becomes mandatory. Exactly one applicable Employee must resolve in the
+  request's Company; the Employee must have a Department. Any failure
+  (missing Employee, ambiguous Employee, Employee without Department)
+  BLOCKS Submit. Department context must never be silently discarded to
+  reach an unrelated global Policy.
+
+Once Department resolves successfully, legitimate fallback through Tiers
+1-4 above remains allowed and is not itself an error.
+
+## DEC-046 — NEED Amount-Based Routing Extension (M21)
+
+**Status:** LOCKED.
+
+NEED Approval Cycle creation (`light.ir.approval.cycle._create_cycle`,
+unchanged engine method) may now receive an amount basis, computed and
+supplied by `light.internal.request.action_submit()`:
+
+- Estimated Line Amount = `requested_qty x price_estimate`
+- Estimated Submission Amount = SUM of Estimated Line Amount across all
+  requirement lines of the Internal Request
+
+This aggregate is the amount passed to NEED cycle creation. Threshold
+selection is IR-aggregate-based, never per-line: an amount that crosses a
+threshold only when lines are summed still resolves to the tier matching
+the aggregate, not to any individual line's own value.
+
+Existing Approval Rule threshold semantics are unchanged and reused as-is:
+`threshold_min <= amount < threshold_max`; an empty `threshold_max` means
+unbounded. Worked boundary examples:
+
+| Amount | Tier |
+|---|---|
+| 4,999,999 | [0, 5,000,000) |
+| 5,000,000 | [5,000,000, 10,000,000) |
+| 9,999,999 | [5,000,000, 10,000,000) |
+| 10,000,000 | [10,000,000, 50,000,000) |
+| 49,999,999 | [10,000,000, 50,000,000) |
+| 50,000,000 | [50,000,000, infinity) |
+
+This does not introduce a third Approval Purpose. NEED remains NEED
+(DEC-010); using an estimated monetary amount to select the NEED
+authority chain does not turn NEED into FINANCIAL.
 
 ## Change Control
 
