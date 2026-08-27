@@ -744,6 +744,65 @@ M21 is complete only when:
 - no critical unmapped requirement remains
 - no critical unresolved security or architecture defect remains
 
+## M22 — Internal Request & Approval Operational UX
+
+Presentation/UX only, over the existing M21 approval engine. No approval
+sequencing, authority, status, Policy resolution, Department routing,
+threshold routing, self-approval-skip, ACL, or `ir.rule` change.
+
+Approval Worklist (FR-IR-188) already filtered to `resolved_user_id = uid`;
+M22 adds `is_actionable = True` to that domain, so a future
+(resolved-but-not-current) step never appears as an actionable task, and
+enriches the list with business context (Requester, Department, Request
+Type, Estimated Amount, Required Date, friendly Approval Step) via
+non-stored `related=` fields on `light.ir.approval.cycle.step` — reusing
+the exact IR/Department/amount snapshots M21 already produces, never
+re-resolving them. My Requests (FR-IR-186) gains the same Estimated
+Amount/Required Date/Department columns, all pre-existing fields on
+`light.internal.request`.
+
+A dedicated business-facing form (`view_light_ir_approval_worklist_task_form`)
+was added for the same `light.ir.approval.cycle.step` model — no new
+transactional model — showing Request Information, Business Purpose
+(`light.internal.request.purpose`, deliberately labeled distinctly from the
+NEED/FINANCIAL `cycle_purpose`), Requested Items (embedded
+`internal_request_id.line_ids`, never flattened), and an Approval Progress
+list (embedded `cycle_id.step_ids`) rendering Approved/Current/
+Waiting-Queued/Rejected purely from the existing `status` + `is_actionable`
+fields — no new approval status. Only this Worklist action's own `view_ids`
+was repointed to the new form; the shared audit/admin Cycle Step form
+(`light_ir_approval.view_light_ir_approval_cycle_step_form`) is untouched
+and keeps its full technical/snapshot terminology for admin/audit use.
+
+Friendly Step Label (e.g. "Department Head" for `GM_HEAD`, "Related
+C-Level" for `GM_CLEVEL`) is Rule Step **configuration data**
+(`light.ir.approval.rule.step.name`), never a Python code→label mapping;
+`responsibility_code` remains the technical routing identity, unchanged.
+Existing historical Approval Cycle Step snapshots retain whatever label was
+configured at the time they were created (TR-APR-004/005 snapshot
+immutability) — only new cycles created after a label edit pick up the new
+one.
+
+Combined "IR reference — Step Label" breadcrumb/title is explicitly
+**deferred**: it would require a `display_name`/`name_get()` override
+(not achievable via view-only XML), out of this presentation-only
+milestone's bar.
+
+Requirements: FR-IR-186, FR-IR-188 (extended, not superseded).
+
+Explicitly out of scope, unchanged: FINANCIAL Tier-1/Tier-2, DEF-PU-01, PO
+Commitment Authority/ceiling consumption, double-approval redesign,
+budget-aware routing, 7-day escalation, Automatic Acceptance,
+price-change-after-approval Revision, a third Approval Purpose.
+
+M22 is complete only when:
+- focused M22 tests pass (11/11, reusing the same evidence standard as
+  prior milestones — no full regression required for a presentation-only
+  change)
+- manual UAT confirms Worklist/Task/Progress/sequential handoff on a real
+  multi-step (Tier 4) request
+- no ACL/`ir.rule`/engine/security change
+
 ## Milestone Completion Report
 
 Every milestone must end with:
